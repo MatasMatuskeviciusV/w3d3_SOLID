@@ -11,7 +11,12 @@ namespace SOLID.BusinessLogic
     {
         public void Log(string message)
         {
-            Console.WriteLine(message);
+            if (!AppSettings.Instance.EnablePaymentLogging)
+            {
+                return;
+            }
+
+            Console.WriteLine($"[{AppSettings.Instance.Environment}] {message}");
         }
     }
 }

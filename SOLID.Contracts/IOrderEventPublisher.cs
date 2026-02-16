@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace SOLID.Contracts
 {
-    public interface IPaymentProcessor
+    public interface IOrderEventPublisher
     {
-        void Process(decimal total);
+        void Subscribe(IOrderObserver observer);
+        void PublishOrderProcessed(Order order);
     }
 }

@@ -7,17 +7,19 @@ using SOLID.Contracts;
 
 namespace SOLID.BusinessLogic
 {
-    public class GooglePayPaymentProcessing : IPaymentProcessor
+    public class CreditCardPayment : IPaymentStrategy
     {
         private readonly ILogger _logger;
 
-        public GooglePayPaymentProcessing(ILogger logger)
+        public CreditCardPayment(ILogger logger)
         {
             _logger = logger;
         }
-        public void Process(decimal total)
+
+        public void Pay(decimal total)
         {
-            _logger.Log($"{total} was charged using Google Pay.");
+            _logger.Log($"{total} was paid using a Credit Card (mock).");
         }
+
     }
 }

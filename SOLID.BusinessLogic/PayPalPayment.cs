@@ -7,17 +7,19 @@ using SOLID.Contracts;
 
 namespace SOLID.BusinessLogic
 {
-    public class CreditCardPaymentProcessing : IPaymentProcessor
+    public class PayPalPayment : IPaymentStrategy
     {
         private readonly ILogger _logger;
 
-        public CreditCardPaymentProcessing(ILogger logger)
+        public PayPalPayment(ILogger logger)
         {
             _logger = logger;
         }
-        public void Process(decimal total)
+
+        public void Pay(decimal total)
         {
-            _logger.Log($"{total} was charged using a credit card.");
+            _logger.Log($"{total} was paid using PayPal (mock).");
         }
+
     }
 }

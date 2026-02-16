@@ -13,31 +13,40 @@ namespace SOLID.Cli
     {
         public static async Task Main(string[] args)
         {
-            ILogger logger = new ConsoleLogger();
+            AppSettings.Instance.Environment = "Staging";
+            AppSettings.Instance.EnablePaymentLogging = true;
+            AppSettings.Instance.EnablePaymentTiming = true;
 
+            ILogger logger = new ConsoleLogger();
             var validator = new OrderValidation();
             INotificationService notifier = new EmailNotification(logger);
             IOrderRepository repository = new OrderRepository(logger);
 
-            var paymentProcessors = new Dictionary<string, IPaymentProcessor>(StringComparer.OrdinalIgnoreCase)
+            var strategies = new Dictionary<string, IPaymentStrategy>(StringComparer.OrdinalIgnoreCase)
             {
-                ["CreditCard"] = new CreditCardPaymentProcessing(logger),
-                ["PayPal"] = new PayPalPaymentProcessing(logger),
-                ["ApplePay"] = new ApplePayPaymentProcessing(logger),
-                ["GooglePay"] = new GooglePayPaymentProcessing(logger)
+                ["CreditCard"] = new CreditCardPayment(logger),
+                ["PayPal"] = new PayPalPayment(logger),
+                ["ApplePay"] = new ApplePayPayment(logger),
+                ["GooglePay"] = new GooglePayPayment(logger)
             };
-
-            var orderService = new OrderService(validator, paymentProcessors, notifier, repository);
 
             var order = new Order
             {
-                Id = 1,
-                Total = 125.87m,
-                PaymentMethod = "CreditCard",
+                Id = 1510,
+                Total = 200652.27m,
+                PaymentMethod = "PayPal",
                 CustomerEmail = "customer@example.com"
             };
 
-            await orderService.ProcessOrderAsync(order);
+            var publisher = new OrderEventPublisher();
+
+            publisher.Subscribe(new EmailNotifier(logger));
+            publisher.Subscribe(new AuditLogger(logger));
+
+            IOrderService service = new OrderService(validator, notifier, repository, publisher);
+            var facade = new OrderFacade(logger, service, strategies);
+
+            await facade.PlaceOrder(order);
         }
     }
 }

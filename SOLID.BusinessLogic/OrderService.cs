@@ -8,38 +8,39 @@ using SOLID.Contracts;
 
 namespace SOLID.BusinessLogic
 {
-    public class OrderService
+    public class OrderService : IOrderService
     {
         private readonly OrderValidation _validator;
-        private readonly IDictionary<string, IPaymentProcessor> _paymentProcessors;
         private readonly INotificationService _notifier;
         private readonly IOrderRepository _repository;
+        private readonly IOrderEventPublisher _publisher;
 
-        public OrderService(OrderValidation validator, IDictionary<string, IPaymentProcessor> paymentProcessors, INotificationService notifier, IOrderRepository repository)
+        public OrderService(
+            OrderValidation validator,
+            INotificationService notifier,
+            IOrderRepository repository,
+            IOrderEventPublisher publisher)
         {
             _validator = validator;
-            _paymentProcessors = paymentProcessors;
             _notifier = notifier;
             _repository = repository;
+            _publisher = publisher;
         }
 
-        public async Task ProcessOrderAsync(Order order, CancellationToken ct = default)
+        public async Task ProcessOrderAsync(Order order, IPaymentStrategy paymentStrategy, CancellationToken ct = default)
         {
             _validator.ValidateOrder(order);
 
-            if(!_paymentProcessors.TryGetValue(order.PaymentMethod, out var processor))
-            {
-                throw new InvalidOperationException($"Unknown payment method: {order.PaymentMethod}");
-            }
-
-            processor.Process(order.Total);
+            paymentStrategy.Pay(order.Total);
 
             if (!string.IsNullOrEmpty(order.CustomerEmail))
             {
-                _notifier.Send(order.CustomerEmail, $"Order {order.Id} processed successfully.");
+                _notifier.Send(order.CustomerEmail, $"Order {order.Id} processed succesfully.");
             }
 
             await _repository.WriteAsync(order, ct);
+
+            _publisher.PublishOrderProcessed(order);
         }
     }
 }

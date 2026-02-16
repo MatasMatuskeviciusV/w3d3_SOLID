@@ -7,17 +7,19 @@ using SOLID.Contracts;
 
 namespace SOLID.BusinessLogic
 {
-    public class ApplePayPaymentProcessing : IPaymentProcessor
+    public class ApplePayPayment : IPaymentStrategy
     {
         private readonly ILogger _logger;
 
-        public ApplePayPaymentProcessing(ILogger logger)
+        public ApplePayPayment(ILogger logger)
         {
             _logger = logger;
         }
-        public void Process(decimal total)
+
+        public void Pay(decimal total)
         {
-            _logger.Log($"{total} was charged using Apple Pay.");
+            _logger.Log($"{total} was paid using Apple Pay (mock).");
         }
+
     }
 }
