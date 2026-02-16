@@ -5,20 +5,20 @@ using System.Text;
 using System.Threading.Tasks;
 using SOLID.Contracts;
 
-namespace SOLID.BusinessLogic
+namespace SOLID.BusinessLogic.Payments
 {
-    public class ApplePayPayment : IPaymentStrategy
+    public class GooglePayPayment : IPaymentStrategy
     {
         private readonly ILogger _logger;
 
-        public ApplePayPayment(ILogger logger)
+        public GooglePayPayment(ILogger logger)
         {
             _logger = logger;
         }
 
         public void Pay(decimal total)
         {
-            _logger.Log($"{total} was paid using Apple Pay (mock).");
+            _logger.Log($"{total} was paid using Google Pay (mock).");
         }
 
     }

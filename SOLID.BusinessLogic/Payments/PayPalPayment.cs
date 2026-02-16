@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SOLID.Contracts;
 
-namespace SOLID.BusinessLogic
+namespace SOLID.BusinessLogic.Payments
 {
     public class PayPalPayment : IPaymentStrategy
     {

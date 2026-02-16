@@ -10,7 +10,7 @@ namespace SOLID.Contracts
     {
         Task ProcessOrderAsync(
             Order order,
-            IPaymentStrategy paymentStrategy,
+            IPaymentPipeline paymentPipeline,
             CancellationToken ct = default);
     }
 }

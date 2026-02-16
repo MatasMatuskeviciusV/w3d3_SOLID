@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SOLID.Contracts;
 using SOLID.BusinessLogic;
+using SOLID.BusinessLogic.Payments;
 
 namespace SOLID.Cli
 {
@@ -22,13 +23,7 @@ namespace SOLID.Cli
             INotificationService notifier = new EmailNotification(logger);
             IOrderRepository repository = new OrderRepository(logger);
 
-            var strategies = new Dictionary<string, IPaymentStrategy>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["CreditCard"] = new CreditCardPayment(logger),
-                ["PayPal"] = new PayPalPayment(logger),
-                ["ApplePay"] = new ApplePayPayment(logger),
-                ["GooglePay"] = new GooglePayPayment(logger)
-            };
+            IPaymentStrategyFactory factory = new PaymentStrategyFactory(logger);
 
             var order = new Order
             {
@@ -44,7 +39,7 @@ namespace SOLID.Cli
             publisher.Subscribe(new AuditLogger(logger));
 
             IOrderService service = new OrderService(validator, notifier, repository, publisher);
-            var facade = new OrderFacade(logger, service, strategies);
+            var facade = new OrderFacade(logger, service, factory);
 
             await facade.PlaceOrder(order);
         }

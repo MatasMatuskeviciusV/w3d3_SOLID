@@ -12,31 +12,35 @@ namespace SOLID.BusinessLogic
     {
         private readonly ILogger _logger;
         private readonly IOrderService _service;
-        private readonly IDictionary<string, IPaymentStrategy> _strategies;
+        private readonly IPaymentStrategyFactory _factory;
 
         public OrderFacade(
             ILogger logger, 
             IOrderService service,
-            IDictionary<string, IPaymentStrategy> strategies)
+            IPaymentStrategyFactory factory)
         {
             _logger = logger;
             _service = service;
-            _strategies = strategies;
+            _factory = factory;
         }
 
         public async Task PlaceOrder(Order order, CancellationToken ct = default)
         {
-            if(!_strategies.TryGetValue(order.PaymentMethod, out var strategy))
-            {
-                throw new InvalidOperationException($"Unknown payment method: {order.PaymentMethod}");
-            }
+            var strategy = _factory.Create(order.PaymentMethod);
 
             IPaymentStrategy decorated = strategy;
 
             decorated = new PaymentTimingDecorator(decorated, _logger);
             decorated = new PaymentLoggingDecorator(decorated, _logger);
 
-            await _service.ProcessOrderAsync(order, decorated, ct);
+            IPaymentPipeline pipeline = new PaymentPipeline(new List<IPaymentStep>
+            {
+                new PaymentValidationStep(),
+                new PaymentAuditStep(_logger),
+                new PaymentExecutionStep(decorated)
+            });
+
+            await _service.ProcessOrderAsync(order, pipeline, ct);
         }
     }
 }

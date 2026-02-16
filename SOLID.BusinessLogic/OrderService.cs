@@ -27,11 +27,11 @@ namespace SOLID.BusinessLogic
             _publisher = publisher;
         }
 
-        public async Task ProcessOrderAsync(Order order, IPaymentStrategy paymentStrategy, CancellationToken ct = default)
+        public async Task ProcessOrderAsync(Order order, IPaymentPipeline paymentPipeline, CancellationToken ct = default)
         {
             _validator.ValidateOrder(order);
 
-            paymentStrategy.Pay(order.Total);
+            await paymentPipeline.ExecuteAsync(order.Total);
 
             if (!string.IsNullOrEmpty(order.CustomerEmail))
             {
